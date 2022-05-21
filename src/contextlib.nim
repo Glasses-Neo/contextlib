@@ -1,7 +1,31 @@
-# This is just an example to get you started. A typical library package
-# exports the main API in this file. Note that you cannot rename this file
-# but you can remove it if you wish.
+import macros
 
-proc add*(x, y: int): int =
-  ## Adds two files together.
-  return x + y
+
+proc enter*(f: File): File =
+  return f
+
+
+proc exit*(f: File) =
+  f.close()
+
+
+macro with*(head, body: untyped): untyped =
+  case head.kind
+  of nnkInfix:
+    if head[0].eqIdent"as":
+      let
+        variable = head[2]
+        instance = head[1]
+      result = quote do:
+        block:
+          defer: `instance`.exit()
+          let `variable` = `instance`.enter()
+          `body`
+    else: error "Unsupported syntax"
+  else:
+    let instance = head
+    result[0][1] = quote do:
+      block:
+        defer: `instance`.exit()
+        `instance`.enter()
+        `body`
