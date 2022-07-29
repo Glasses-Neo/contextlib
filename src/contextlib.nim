@@ -1,13 +1,10 @@
 import macros
 
-
 proc enter*(f: File): File =
   return f
 
-
 proc exit*(f: File) =
   f.close()
-
 
 macro with*(head, body: untyped): untyped =
   case head.kind
